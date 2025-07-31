@@ -22,15 +22,14 @@ class QuargoService(TargetDataSource, ExternalDataSource):
         logging.info("test")
         bearerToken = self._authenticationManager.get_token() # request access token
         endpoint = 'resources/resource'
-        logging.error(f"{unavailableResourceDto.__str__()}")
-        logging.error(f"{unavailableResourceDto.resourceId}")
         url = f"{self._config.baseUrl}/{endpoint}/{unavailableResourceDto.resourceId}/unavailability"
         headers = {"Authorization": f"Bearer {bearerToken}"}
 
         data = unavailableResourceDto.convert_dict()
-        logging.info(f"Data for the POST request {data}")
 
-        requests.post(url=url, headers=headers, data=data)
+        result = requests.post(url=url, headers=headers, data=data)
+        if result.status_code == requests.codes.ok:
+            logging.info(f"Succesfully created unavailable resource: ${result.json()}")
 
     def getAllResources(self,cursor = None):
         bearerToken = self._authenticationManager.get_token() # request access token
@@ -41,7 +40,7 @@ class QuargoService(TargetDataSource, ExternalDataSource):
 
         resourcesResponse = requests.get(url, headers=headers)
 
-        if resourcesResponse.status_code != 200:
+        if resourcesResponse.status_code != requests.codes.ok:
             logging.error(f"failed to make a request to URL {url} - HTTP status code {str(resourcesResponse.status_code)}")
 
             match resourcesResponse.status_code:
@@ -51,6 +50,7 @@ class QuargoService(TargetDataSource, ExternalDataSource):
                     pass
             exit()
         else:
+            logging.info("Succesfully get all the resources")
             return resourcesResponse.json()
 
     def getSpecificUnavailableResource(self, resourceId: int, cursor = None):
@@ -76,6 +76,7 @@ class QuargoService(TargetDataSource, ExternalDataSource):
                     pass
             exit()
         else:
+            logging.info("Succesfully get a specific unavailable resource.")
             return unavailableResourcesResponse.json()
 
     def __endpoint(self, id, startTime, endTime):
@@ -90,8 +91,6 @@ class QuargoService(TargetDataSource, ExternalDataSource):
             updatedUnavailableResource = requests.put(url, headers=headers)
 
             if updatedUnavailableResource.status_code != 200:
-                logging.error(url) # this is the problem!
-                logging.error("test") # this is the problem!
                 logging.error(f"failed to make a request to URL {url} - HTTP status code {str(updatedUnavailableResource.status_code)}")
 
                 match updatedUnavailableResource.status_code:
@@ -101,6 +100,7 @@ class QuargoService(TargetDataSource, ExternalDataSource):
                         pass
                 exit()
             else:
+                logging.info("Succesfully update a specific resource")
                 return updatedUnavailableResource.json()
 
     def __hasAccess(self):

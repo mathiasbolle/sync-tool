@@ -1,6 +1,7 @@
 from config import SyncConfig
 from services.external.masterDataRepository import MasterDataRepository
 from services.target.targetDataRepository import ExternalDataRepository
+from apscheduler.triggers.cron import CronTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
 import asyncio
 import logging
@@ -31,14 +32,13 @@ class SyncScheduler():
 
     def __init__(self):
         self._scheduler = BackgroundScheduler()
-
         # Add a job to the scheduler
-        self._scheduler.add_job(sync_data, 'cron', cron=SyncConfig().cron)
+        trigger = CronTrigger.from_crontab(SyncConfig().cron)
+        self._scheduler.add_job(sync_data, trigger)
         logging.info(f"Created a cron schedule with value {SyncConfig().cron}")
 
         # Start the scheduler
         self._scheduler.start()
-
 
     def run(self):
         try:
