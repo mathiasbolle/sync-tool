@@ -2,7 +2,7 @@
 
 ## How to run this script
 ```sh
-python ./src/main
+python ./src/main.py
 ```
 
 ## Design pattern
